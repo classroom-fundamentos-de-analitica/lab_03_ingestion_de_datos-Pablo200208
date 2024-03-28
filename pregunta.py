@@ -14,8 +14,35 @@ import pandas as pd
 
 def ingest_data():
 
-    #
-    # Inserte su código aquí
-    #
+  with open('clusters_report.txt') as reporte:
+    filas = reporte.readlines()
 
-    return df
+  filas = filas[4:]
+
+  clusters = []
+  cluster = [0, 0, 0, '']
+
+  for fila in filas:
+    if re.match('^ +[0-9]+ +', fila):
+      numero, cantidad, porcentaje, *palabras = fila.split()
+     
+      cluster[0] = int(numero)
+      cluster[1] = int(cantidad)
+      cluster[2] = float(porcentaje.replace(',','.')) 
+
+      palabras.pop(0) 
+      palabras = ' '.join(palabras)
+      cluster[3] += palabras
+
+    elif re.match('^ +[a-z]', fila):
+      palabras = fila.split()
+      palabras = ' '.join(palabras)
+      cluster[3] += ' ' + palabras
+
+    elif re.match('^\n', fila) or re.match('^ +$', fila):
+      cluster[3] = cluster[3].replace('.', '') 
+      clusters.append(cluster)
+      cluster = [0, 0, 0, '']
+
+  df = pd.DataFrame (clusters, columns = ['cluster', 'cantidad_de_palabras_clave', 'porcentaje_de_palabras_clave', 'principales_palabras_clave'])
+  return df
